@@ -1,3 +1,4 @@
+name: marital
 states:
   S: NeverMarried
   M: Married
@@ -5,6 +6,9 @@ states:
   V: Divorced
   D: Dead
 absorbing: D
+# The state whose life course the indicators contrast against: mean age at
+# death is reported per state, plus an aggregate over every other living state.
+reference_state: S
 transitions:
   first_marriage: {from: S, to: M, semantics: "first marriage"}
   spouse_death: {from: M, to: W, semantics: "death of spouse"}

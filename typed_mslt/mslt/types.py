@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import FrozenSet, Optional
 
+from .units import Unit, UnitError
+
 class Quality(str, Enum):
     OBSERVED = "Observed"
     ESTIMATED = "Estimated"
@@ -11,7 +13,7 @@ class Quality(str, Enum):
 class SemanticType:
     kind: str
     dims: FrozenSet[str] = field(default_factory=frozenset)
-    unit: str = ""
+    unit: Unit = field(default_factory=Unit)
     age_scheme: str = ""
     universe: str = "JapanesePopulation"
     time_semantics: str = "Period"
@@ -19,6 +21,12 @@ class SemanticType:
     source_state: Optional[str] = None
     target_state: Optional[str] = None
     note: str = ""
+
+    def __post_init__(self) -> None:
+        # Units may be written as strings at the construction site; normalize
+        # them so every type carries a unit the algebra can operate on.
+        if not isinstance(self.unit, Unit):
+            object.__setattr__(self, "unit", Unit.parse(self.unit))
 
     def with_quality(self, q: Quality, note: str = "") -> "SemanticType":
         return SemanticType(
@@ -51,6 +59,30 @@ def require_dims(t: SemanticType, dims: set[str], op: str) -> None:
 def require_same_universe(a: SemanticType, b: SemanticType, op: str) -> None:
     if a.universe != b.universe:
         raise SemanticTypeError(f"{op}: population-universe mismatch: {a.universe} != {b.universe}")
+
+def require_unit(actual: Unit, expected: Unit, op: str, what: str) -> None:
+    """Assert a dimension, naming what was being measured when it disagrees."""
+    if actual != expected:
+        raise SemanticTypeError(
+            f"{op}: {what} must be measured in {expected}, got {actual}"
+        )
+
+def require_dimensionless(actual: Unit, op: str, what: str) -> None:
+    if not actual.is_dimensionless():
+        raise SemanticTypeError(f"{op}: {what} must be dimensionless, got {actual}")
+
+def divide_units(numerator: Unit, denominator: Unit, op: str) -> Unit:
+    """Divide two units, reporting a unit failure as a semantic type error."""
+    try:
+        return numerator / denominator
+    except UnitError as e:
+        raise SemanticTypeError(f"{op}: {e}") from e
+
+def multiply_units(a: Unit, b: Unit, op: str) -> Unit:
+    try:
+        return a * b
+    except UnitError as e:
+        raise SemanticTypeError(f"{op}: {e}") from e
 
 def join_quality(*types: SemanticType) -> Quality:
     return Quality.ESTIMATED if any(t.quality == Quality.ESTIMATED for t in types) else Quality.OBSERVED
