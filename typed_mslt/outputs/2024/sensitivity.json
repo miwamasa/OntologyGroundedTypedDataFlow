@@ -1,0 +1,301 @@
+{
+  "program": "typed_mslt/examples/male_2024.mslt",
+  "target": "indicators",
+  "depends_on": [
+    "cohort_closure",
+    "remarriage_tail_years",
+    "share_extrapolation"
+  ],
+  "swept": [
+    "cohort_closure",
+    "remarriage_tail_years",
+    "share_extrapolation"
+  ],
+  "unregistered": [],
+  "not_applicable": [],
+  "baseline": {
+    "MeanAgeAtDeath/S": 76.47587757336811,
+    "MeanAgeAtDeath/M": 82.15652037533657,
+    "MeanAgeAtDeath/W": 90.01193644290719,
+    "MeanAgeAtDeath/V": 75.42001977019832,
+    "MeanAgeAtDeath/NON_S": 83.2237738493751,
+    "DeathShare/S": 0.5109718007994676
+  },
+  "one_at_a_time": {
+    "cohort_closure": {
+      "parameter": "max_age",
+      "operation": "multistate_life_table",
+      "description": "80歳以上のハザードを一定として合成コホートを閉じる上限年齢。",
+      "baseline": 120,
+      "points": [
+        {
+          "value": 105,
+          "label": "max_age=105",
+          "indicators": {
+            "MeanAgeAtDeath/S": 75.90554236716682,
+            "MeanAgeAtDeath/M": 81.23550502274654,
+            "MeanAgeAtDeath/W": 87.95856980789068,
+            "MeanAgeAtDeath/V": 75.13500507611988,
+            "MeanAgeAtDeath/NON_S": 82.01468229057708,
+            "DeathShare/S": 0.5175470378197788
+          }
+        },
+        {
+          "value": 120,
+          "label": "max_age=120 (baseline)",
+          "indicators": {
+            "MeanAgeAtDeath/S": 76.47587757336811,
+            "MeanAgeAtDeath/M": 82.15652037533657,
+            "MeanAgeAtDeath/W": 90.01193644290719,
+            "MeanAgeAtDeath/V": 75.42001977019832,
+            "MeanAgeAtDeath/NON_S": 83.2237738493751,
+            "DeathShare/S": 0.5109718007994676
+          }
+        },
+        {
+          "value": 130,
+          "label": "max_age=130",
+          "indicators": {
+            "MeanAgeAtDeath/S": 76.57748138567615,
+            "MeanAgeAtDeath/M": 82.35442374109276,
+            "MeanAgeAtDeath/W": 90.5434553934765,
+            "MeanAgeAtDeath/V": 75.46025673125139,
+            "MeanAgeAtDeath/NON_S": 83.50148321535873,
+            "DeathShare/S": 0.5098099260455656
+          }
+        }
+      ],
+      "range": {
+        "MeanAgeAtDeath/S": {
+          "min": 75.90554236716682,
+          "max": 76.57748138567615,
+          "span": 0.6719390185093346
+        },
+        "MeanAgeAtDeath/M": {
+          "min": 81.23550502274654,
+          "max": 82.35442374109276,
+          "span": 1.1189187183462224
+        },
+        "MeanAgeAtDeath/W": {
+          "min": 87.95856980789068,
+          "max": 90.5434553934765,
+          "span": 2.5848855855858233
+        },
+        "MeanAgeAtDeath/V": {
+          "min": 75.13500507611988,
+          "max": 75.46025673125139,
+          "span": 0.32525165513150966
+        },
+        "MeanAgeAtDeath/NON_S": {
+          "min": 82.01468229057708,
+          "max": 83.50148321535873,
+          "span": 1.4868009247816474
+        },
+        "DeathShare/S": {
+          "min": 0.5098099260455656,
+          "max": 0.5175470378197788,
+          "span": 0.007737111774213212
+        }
+      }
+    },
+    "remarriage_tail_years": {
+      "parameter": "tail_years",
+      "operation": "estat_remarriage7",
+      "description": "中巻7の「前婚解消から11年以上」を代表させる経過年数。再婚時年齢の導出に直接効く。",
+      "baseline": 12.0,
+      "points": [
+        {
+          "value": 11.0,
+          "label": "tail_years=11",
+          "indicators": {
+            "MeanAgeAtDeath/S": 76.47587757336811,
+            "MeanAgeAtDeath/M": 82.15421145855636,
+            "MeanAgeAtDeath/W": 90.0122069893826,
+            "MeanAgeAtDeath/V": 75.45776845331966,
+            "MeanAgeAtDeath/NON_S": 83.2220342529587,
+            "DeathShare/S": 0.5109700447477297
+          }
+        },
+        {
+          "value": 12.0,
+          "label": "tail_years=12 (baseline)",
+          "indicators": {
+            "MeanAgeAtDeath/S": 76.47587757336811,
+            "MeanAgeAtDeath/M": 82.15652037533657,
+            "MeanAgeAtDeath/W": 90.01193644290719,
+            "MeanAgeAtDeath/V": 75.42001977019832,
+            "MeanAgeAtDeath/NON_S": 83.2237738493751,
+            "DeathShare/S": 0.5109718007994676
+          }
+        },
+        {
+          "value": 15.0,
+          "label": "tail_years=15",
+          "indicators": {
+            "MeanAgeAtDeath/S": 76.47587757336811,
+            "MeanAgeAtDeath/M": 82.16466435969485,
+            "MeanAgeAtDeath/W": 90.01130516983706,
+            "MeanAgeAtDeath/V": 75.28737279412736,
+            "MeanAgeAtDeath/NON_S": 83.2266738135537,
+            "DeathShare/S": 0.5109771895379569
+          }
+        }
+      ],
+      "range": {
+        "MeanAgeAtDeath/S": {
+          "min": 76.47587757336811,
+          "max": 76.47587757336811,
+          "span": 0.0
+        },
+        "MeanAgeAtDeath/M": {
+          "min": 82.15421145855636,
+          "max": 82.16466435969485,
+          "span": 0.01045290113849262
+        },
+        "MeanAgeAtDeath/W": {
+          "min": 90.01130516983706,
+          "max": 90.0122069893826,
+          "span": 0.0009018195455468003
+        },
+        "MeanAgeAtDeath/V": {
+          "min": 75.28737279412736,
+          "max": 75.45776845331966,
+          "span": 0.1703956591922946
+        },
+        "MeanAgeAtDeath/NON_S": {
+          "min": 83.2220342529587,
+          "max": 83.2266738135537,
+          "span": 0.004639560595009584
+        },
+        "DeathShare/S": {
+          "min": 0.5109700447477297,
+          "max": 0.5109771895379569,
+          "span": 7.144790227231468e-06
+        }
+      }
+    },
+    "share_extrapolation": {
+      "parameter": "strength",
+      "operation": "extrapolate_share",
+      "description": "2015->2020 の配偶状態割合の傾きを 2024 年へどれだけ延長するか。0 なら 2020 年の割合を据え置き、1 が線形外挿、1.5 は傾きの加速。",
+      "baseline": 1.0,
+      "points": [
+        {
+          "value": 0.0,
+          "label": "strength=0",
+          "indicators": {
+            "MeanAgeAtDeath/S": 74.73529852633415,
+            "MeanAgeAtDeath/M": 82.33364355851818,
+            "MeanAgeAtDeath/W": 90.44115389273456,
+            "MeanAgeAtDeath/V": 74.5379213148761,
+            "MeanAgeAtDeath/NON_S": 83.36915025680098,
+            "DeathShare/S": 0.5027798144837554
+          }
+        },
+        {
+          "value": 0.5,
+          "label": "strength=0.5",
+          "indicators": {
+            "MeanAgeAtDeath/S": 75.63806757010879,
+            "MeanAgeAtDeath/M": 82.24660626246123,
+            "MeanAgeAtDeath/W": 90.23114933267343,
+            "MeanAgeAtDeath/V": 74.9820321390331,
+            "MeanAgeAtDeath/NON_S": 83.29820474184916,
+            "DeathShare/S": 0.5069974541648901
+          }
+        },
+        {
+          "value": 1.0,
+          "label": "strength=1 (baseline)",
+          "indicators": {
+            "MeanAgeAtDeath/S": 76.47587757336811,
+            "MeanAgeAtDeath/M": 82.15652037533657,
+            "MeanAgeAtDeath/W": 90.01193644290719,
+            "MeanAgeAtDeath/V": 75.42001977019832,
+            "MeanAgeAtDeath/NON_S": 83.2237738493751,
+            "DeathShare/S": 0.5109718007994676
+          }
+        },
+        {
+          "value": 1.5,
+          "label": "strength=1.5",
+          "indicators": {
+            "MeanAgeAtDeath/S": 77.25596514756745,
+            "MeanAgeAtDeath/M": 82.06315406228998,
+            "MeanAgeAtDeath/W": 89.78228105228551,
+            "MeanAgeAtDeath/V": 75.85018728129953,
+            "MeanAgeAtDeath/NON_S": 83.1451797796189,
+            "DeathShare/S": 0.5147102997276
+          }
+        }
+      ],
+      "range": {
+        "MeanAgeAtDeath/S": {
+          "min": 74.73529852633415,
+          "max": 77.25596514756745,
+          "span": 2.5206666212333033
+        },
+        "MeanAgeAtDeath/M": {
+          "min": 82.06315406228998,
+          "max": 82.33364355851818,
+          "span": 0.27048949622819407
+        },
+        "MeanAgeAtDeath/W": {
+          "min": 89.78228105228551,
+          "max": 90.44115389273456,
+          "span": 0.6588728404490496
+        },
+        "MeanAgeAtDeath/V": {
+          "min": 74.5379213148761,
+          "max": 75.85018728129953,
+          "span": 1.3122659664234249
+        },
+        "MeanAgeAtDeath/NON_S": {
+          "min": 83.1451797796189,
+          "max": 83.36915025680098,
+          "span": 0.2239704771820783
+        },
+        "DeathShare/S": {
+          "min": 0.5027798144837554,
+          "max": 0.5147102997276,
+          "span": 0.011930485243844546
+        }
+      }
+    }
+  },
+  "envelope": {
+    "combinations": 36,
+    "range": {
+      "MeanAgeAtDeath/S": {
+        "min": 74.44078541083395,
+        "max": 77.40267746959171,
+        "span": 2.961892058757755
+      },
+      "MeanAgeAtDeath/M": {
+        "min": 81.141004980882,
+        "max": 82.53971561000066,
+        "span": 1.3987106291186535
+      },
+      "MeanAgeAtDeath/W": {
+        "min": 87.78083185075408,
+        "max": 91.01520015906685,
+        "span": 3.2343683083127672
+      },
+      "MeanAgeAtDeath/V": {
+        "min": 74.25104892629226,
+        "max": 75.94469265865403,
+        "span": 1.6936437323617781
+      },
+      "MeanAgeAtDeath/NON_S": {
+        "min": 81.94816849206224,
+        "max": 83.66492760070209,
+        "span": 1.7167591086398488
+      },
+      "DeathShare/S": {
+        "min": 0.5011987998083675,
+        "max": 0.5199031853329286,
+        "span": 0.018704385524561107
+      }
+    }
+  }
+}

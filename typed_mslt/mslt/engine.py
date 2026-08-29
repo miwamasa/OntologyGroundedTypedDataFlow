@@ -8,9 +8,23 @@ from .ontology import Ontology
 from .types import SemanticType, SemanticTypeError
 
 class Engine:
-    def __init__(self, program_path: str, data_root: str='.', ontology_path: str|None=None):
+    def __init__(self, program_path: str, data_root: str='.', ontology_path: str|None=None,
+                 overrides: dict[str,dict]|None=None, source_cache: dict|None=None):
+        """
+        ``overrides`` replaces named keyword arguments of every statement that
+        calls a given operation, which is how a sensitivity sweep re-runs the
+        same program under a different assumption. ``source_cache``, when
+        supplied, memoizes adapter results across engines so a sweep parses
+        each CSV once rather than once per combination.
+        """
         self.program=parse(program_path); self.data_root=Path(data_root); self.env={}; self.trace=[]
+        self.overrides=overrides or {}
+        self.source_cache=source_cache
         self.ontology=Ontology.load(self._ontology_path(program_path,ontology_path))
+
+    def _apply_overrides(self, fn_name: str, kwargs: dict) -> dict:
+        override=self.overrides.get(fn_name)
+        return {**kwargs, **override} if override else kwargs
 
     def _ontology_path(self, program_path: str, override: str|None) -> Path:
         """Resolve which ontology this program is modelled against.
@@ -67,7 +81,7 @@ class Engine:
         tenv: dict[str, SemanticType] = {}
         for s in self.program.sources:
             if s.fn not in ADAPTER_TYPES: raise KeyError(f"unknown adapter {s.fn}")
-            kwargs={k:self._resolve(v,tenv) for k,v in s.kwargs.items()}
+            kwargs=self._apply_overrides(s.fn,{k:self._resolve(v,tenv) for k,v in s.kwargs.items()})
             t=ADAPTER_TYPES[s.fn](**kwargs)
             self._check_declared(s,t)
             self._check_ontology(s.name,t)
@@ -76,17 +90,29 @@ class Engine:
             if st.fn not in TYPE_OPS: raise KeyError(f"unknown operation {st.fn}")
             fn=TYPE_OPS[st.fn]
             args=[self._resolve(x,tenv) for x in st.args]
-            kwargs=self._with_ontology(fn,{k:self._resolve(v,tenv) for k,v in st.kwargs.items()})
-            tenv[st.name]=fn(*args,**kwargs)
+            kwargs=self._apply_overrides(st.fn,{k:self._resolve(v,tenv) for k,v in st.kwargs.items()})
+            tenv[st.name]=fn(*args,**self._with_ontology(fn,kwargs))
         return tenv
 
     # -- evaluation ------------------------------------------------------
+    def _adapt(self, fn_name, args, kwargs):
+        """Call an adapter, reusing a cached frame when a sweep has one."""
+        if self.source_cache is None:
+            return ADAPTERS[fn_name](*args,**kwargs)
+        key=(fn_name,tuple(args),tuple(sorted(kwargs.items())))
+        if key not in self.source_cache:
+            self.source_cache[key]=ADAPTERS[fn_name](*args,**kwargs)
+        cached=self.source_cache[key]
+        # Hand out a copy: the engine renames frames and callers may mutate.
+        return cached.copy()
+
     def load_sources(self):
         for s in self.program.sources:
             if s.fn not in ADAPTERS: raise KeyError(f"unknown adapter {s.fn}")
-            args=[self._resolve(x) for x in s.args]; kwargs={k:self._resolve(v) for k,v in s.kwargs.items()}
+            args=[self._resolve(x) for x in s.args]
+            kwargs=self._apply_overrides(s.fn,{k:self._resolve(v) for k,v in s.kwargs.items()})
             if args and isinstance(args[0],str): args[0]=str((self.data_root/args[0]).resolve())
-            f=ADAPTERS[s.fn](*args,**kwargs); f.name=s.name
+            f=self._adapt(s.fn,args,kwargs); f.name=s.name
             self._check_declared(s,f.type)
             self._check_ontology(s.name,f.type)
             self.env[s.name]=f; self.trace.append(f.explain())
@@ -97,14 +123,17 @@ class Engine:
             if st.fn not in OPS: raise KeyError(f"unknown operation {st.fn}")
             fn=OPS[st.fn]
             args=[self._resolve(x) for x in st.args]
-            kwargs=self._with_ontology(fn,{k:self._resolve(v) for k,v in st.kwargs.items()})
-            f=fn(*args,**kwargs); f.name=st.name; self.env[st.name]=f; self.trace.append(f.explain())
+            kwargs=self._apply_overrides(st.fn,{k:self._resolve(v) for k,v in st.kwargs.items()})
+            f=fn(*args,**self._with_ontology(fn,kwargs)); f.name=st.name
+            self.env[st.name]=f; self.trace.append(f.explain())
         return self.env
 
     def write_outputs(self,outdir: str):
         out=Path(outdir); out.mkdir(parents=True,exist_ok=True)
         (out/'type_trace.txt').write_text('\n\n'.join(self.trace),encoding='utf-8')
-        manifest={k:{"type":v.type.short(),"rows":len(v.rows),"provenance":v.provenance,"assumptions":v.assumptions} for k,v in self.env.items()}
+        manifest={k:{"type":v.type.short(),"rows":len(v.rows),
+                     "depends_on":sorted(v.type.depends_on),
+                     "provenance":v.provenance,"assumptions":v.assumptions} for k,v in self.env.items()}
         (out/'semantic_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
         for k,v in self.env.items():
             if not v.rows: continue

@@ -18,11 +18,12 @@ from __future__ import annotations
 from collections import defaultdict
 import numpy as np
 from scipy.linalg import expm
+from .assumptions import COHORT_CLOSURE, SHARE_EXTRAPOLATION
 from .frame import SemanticFrame
 from .ontology import Ontology
 from .types import (
     SemanticType, SemanticTypeError, Quality, require_kind, require_dims, require_same_universe,
-    require_unit, require_dimensionless, divide_units, multiply_units, join_quality,
+    require_unit, require_dimensionless, divide_units, multiply_units, join_quality, join_depends,
 )
 from .units import PERSON, YEAR, PERSON_YEAR, PER_YEAR, MIXED
 from .utils import CANON_BANDS
@@ -47,7 +48,7 @@ def sig_observed_share(census: SemanticType, year: int, sex: str) -> SemanticTyp
     require_dims(census,{"age","state"},op)
     require_unit(census.unit,PERSON,op,"a marital-status population")
     return SemanticType("MaritalShare",census.dims,_share_unit(census,op),census.age_scheme,
-                        census.universe,"Period",Quality.OBSERVED)
+                        census.universe,"Period",census.quality,depends_on=join_depends(census))
 
 def observed_share(census: SemanticFrame, year: int, sex: str, *, ontology: Ontology) -> SemanticFrame:
     t=sig_observed_share(census.type,year,sex)
@@ -61,7 +62,8 @@ def observed_share(census: SemanticFrame, year: int, sex: str, *, ontology: Onto
         for s in living: out.append({"year":year,"sex":sex,"age":age,"state":s,"value":pop[(age,s)]/den})
     return SemanticFrame(f"share_{year}",t,out,census.provenance+ [f"observed marital shares for {year}"])
 
-def sig_extrapolate_share(census: SemanticType, base_years: list[int], target_year: int, sex: str) -> SemanticType:
+def sig_extrapolate_share(census: SemanticType, base_years: list[int], target_year: int, sex: str,
+                          strength: float=1.0) -> SemanticType:
     op="extrapolate_share"
     require_kind(census,"MaritalPopulation",op)
     require_dims(census,{"age","state"},op)
@@ -71,16 +73,24 @@ def sig_extrapolate_share(census: SemanticType, base_years: list[int], target_ye
     y0,y1=base_years
     return SemanticType("MaritalShare",census.dims,_share_unit(census,op),census.age_scheme,
                         census.universe,"Period",Quality.ESTIMATED,
-                        note=f"linear extrapolation {y0}->{y1}->{target_year}")
+                        note=f"linear extrapolation {y0}->{y1}->{target_year} at strength {strength:g}",
+                        depends_on=join_depends(census,adding={SHARE_EXTRAPOLATION}))
 
 def extrapolate_share(census: SemanticFrame, base_years: list[int], target_year: int, sex: str,
-                      *, ontology: Ontology) -> SemanticFrame:
-    t=sig_extrapolate_share(census.type,base_years,target_year,sex)
+                      strength: float=1.0, *, ontology: Ontology) -> SemanticFrame:
+    """Carry the base-year trend forward, scaled by ``strength``.
+
+    ``strength`` is the SHARE_EXTRAPOLATION knob: 1.0 is the plain linear
+    extrapolation, 0.0 holds the later base year's shares unchanged, and a
+    larger value steepens the trend. It exists so the assumption can be swept
+    rather than only asserted.
+    """
+    t=sig_extrapolate_share(census.type,base_years,target_year,sex,strength)
     living=ontology.living_states
     y0,y1=base_years
     s0=observed_share(census,y0,sex,ontology=ontology); s1=observed_share(census,y1,sex,ontology=ontology)
     d0={(r['age'],r['state']):r['value'] for r in s0.rows}; d1={(r['age'],r['state']):r['value'] for r in s1.rows}
-    factor=(target_year-y1)/(y1-y0)
+    factor=strength*(target_year-y1)/(y1-y0)
     out=[]
     for age in CANON_BANDS:
         raw={s:max(0.0,d1.get((age,s),0)+factor*(d1.get((age,s),0)-d0.get((age,s),0))) for s in living}
@@ -88,7 +98,8 @@ def extrapolate_share(census: SemanticFrame, base_years: list[int], target_year:
         if z<=0: continue
         for s in living: out.append({"year":target_year,"sex":sex,"age":age,"state":s,"value":raw[s]/z})
     return SemanticFrame(f"share_{target_year}",t,out,census.provenance,
-                         [f"linear extrapolation of marital shares from {y0},{y1} to {target_year}; clipped at zero and renormalized"])
+                         [f"linear extrapolation of marital shares from {y0},{y1} to {target_year} "
+                          f"at strength {strength:g}; clipped at zero and renormalized"])
 
 # --------------------------------------------------------------------------
 # partition_exposure
@@ -105,7 +116,8 @@ def sig_partition_exposure(exposure: SemanticType, share: SemanticType, year: in
     require_dimensionless(share.unit,op,"a marital-status share")
     unit=multiply_units(exposure.unit,share.unit,op)
     return SemanticType("StateExposure",frozenset({"year","sex","age","state"}),unit,exposure.age_scheme,
-                        exposure.universe,"Period",join_quality(exposure,share))
+                        exposure.universe,"Period",join_quality(exposure,share),
+                        depends_on=join_depends(exposure,share))
 
 def partition_exposure(exposure: SemanticFrame, share: SemanticFrame, year: int, sex: str) -> SemanticFrame:
     t=sig_partition_exposure(exposure.type,share.type,year,sex)
@@ -133,7 +145,8 @@ def sig_death_hazard(deaths: SemanticType, state_exposure: SemanticType, year: i
     require_dims(deaths,{"age","state"},op); require_dims(state_exposure,{"age","state"},op)
     unit=_occurrence_exposure_unit(deaths,state_exposure,op,"a death count")
     return SemanticType("HazardRate",HAZARD_DIMS,unit,deaths.age_scheme,deaths.universe,"Period",
-                        join_quality(deaths,state_exposure),target_state="D")
+                        join_quality(deaths,state_exposure),target_state="D",
+                        depends_on=join_depends(deaths,state_exposure))
 
 def death_hazard(deaths: SemanticFrame, state_exposure: SemanticFrame, year: int, sex: str,
                  *, ontology: Ontology) -> SemanticFrame:
@@ -167,7 +180,8 @@ def sig_transition_hazards(frames: list[SemanticType], state_exposure: SemanticT
                 f"ontology {ontology.name!r}"
             )
     return SemanticType("HazardRate",HAZARD_DIMS,PER_YEAR,state_exposure.age_scheme,
-                        state_exposure.universe,"Period",join_quality(state_exposure,*frames))
+                        state_exposure.universe,"Period",join_quality(state_exposure,*frames),
+                        depends_on=join_depends(state_exposure,*frames))
 
 def transition_hazards(frames: list[SemanticFrame], state_exposure: SemanticFrame, year: int, sex: str,
                        *, ontology: Ontology) -> SemanticFrame:
@@ -196,7 +210,8 @@ def sig_generator_matrix(death: SemanticType, transitions: SemanticType, year: i
     require_unit(death.unit,PER_YEAR,op,"a death hazard")
     require_unit(transitions.unit,PER_YEAR,op,"a social-transition hazard")
     return SemanticType("GeneratorMatrix",frozenset({"year","sex","age"}),death.unit,death.age_scheme,
-                        death.universe,"Period",join_quality(death,transitions))
+                        death.universe,"Period",join_quality(death,transitions),
+                        depends_on=join_depends(death,transitions))
 
 def generator_matrix(death: SemanticFrame, transitions: SemanticFrame, year: int, sex: str,
                      *, ontology: Ontology) -> SemanticFrame:
@@ -235,7 +250,7 @@ def sig_transition_probabilities(generator: SemanticType, interval_years: float=
     require_dimensionless(product,op,f"G(x) times a {interval_years:g}-year interval")
     return SemanticType("TransitionMatrix",generator.dims,product.labeled("probability"),generator.age_scheme,
                         generator.universe,"Interval",generator.quality,
-                        note=f"P=expm(G*{interval_years:g})")
+                        note=f"P=expm(G*{interval_years:g})",depends_on=join_depends(generator))
 
 def transition_probabilities(generator: SemanticFrame, interval_years: float=5.0) -> SemanticFrame:
     t=sig_transition_probabilities(generator.type,interval_years)
@@ -266,7 +281,8 @@ def sig_multistate_life_table(probabilities: SemanticType, start_age: int=15, in
             f"ontology {ontology.name!r} {list(ontology.living_states)}"
         )
     return SemanticType("MultiStateLifeTable",frozenset({"age","state"}),PERSON,probabilities.age_scheme,
-                        probabilities.universe,"SyntheticCohort",probabilities.quality)
+                        probabilities.universe,"SyntheticCohort",Quality.ESTIMATED,
+                        depends_on=join_depends(probabilities,adding={COHORT_CLOSURE}))
 
 def multistate_life_table(probabilities: SemanticFrame, start_age: int=15, initial_state: str="S",
                           radix: float=100000, max_age: int=120, *, ontology: Ontology) -> SemanticFrame:
@@ -293,7 +309,8 @@ def sig_indicators(life_table: SemanticType) -> SemanticType:
     require_kind(life_table,"MultiStateLifeTable",op)
     require_dims(life_table,{"age","state"},op)
     return SemanticType("LifeCourseIndicator",frozenset({"indicator","state"}),MIXED,life_table.age_scheme,
-                        life_table.universe,"SyntheticCohort",life_table.quality)
+                        life_table.universe,"SyntheticCohort",life_table.quality,
+                        depends_on=join_depends(life_table))
 
 def indicators(life_table: SemanticFrame, *, ontology: Ontology) -> SemanticFrame:
     t=sig_indicators(life_table.type)

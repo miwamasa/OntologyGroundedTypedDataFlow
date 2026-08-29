@@ -94,6 +94,31 @@ PYTHONPATH=. pytest -q
 
 2020年の石井論文表3の値（未婚75.80、有配偶82.05、死別90.72、離別74.81、未婚以外82.91）との比較では、公開表・5歳階級という制約の下で、有配偶・死別はかなり近い一方、未婚などには差が残ります。
 
+## 仮定の振れ幅
+
+推計値の型は「推計である」という印だけでなく、**依存している名前付き仮定の集合**を持ちます。型が到達可能と判定した仮定だけを振ることで、各指標がどこまで動くかを機械的に出せます:
+
+```bash
+PYTHONPATH=typed_mslt python -m mslt sensitivity typed_mslt/examples/male_2024.mslt --data-root .
+```
+
+2024年・男性、宣言された3つの仮定を全組み合わせ（36通り）で振った結果:
+
+| 指標 | 下限 | 基準値 | 上限 | 振れ幅 |
+|---|---:|---:|---:|---:|
+| 未婚 S | 74.44 | 76.48 | 77.40 | 2.96 |
+| 有配偶 M | 81.14 | 82.16 | 82.54 | 1.40 |
+| 死別 W | 87.78 | 90.01 | 91.02 | 3.23 |
+| 離別 V | 74.25 | 75.42 | 75.94 | 1.69 |
+
+仮定ごとの寄与を分けると、次のことが分かります。
+
+- **未婚 S を最も動かすのは配偶状態割合の外挿**（単独で 2.52年）。論文値 75.80 はこの振れ幅の中に入っており、未婚の差は「公開表だけでは決まらない仮定の選び方」の範囲内にあります。
+- **死別 W を最も動かすのはコホートの打ち切り年齢**（単独で 2.58年）。死別は最も高齢で死ぬ状態なので、上限年齢の扱いが直接効きます。
+- **再婚の `tail_years` はほとんど効かない**（最大でも離別 V の 0.17年）。README が仮定として挙げているものの中では、実際の影響は最小でした。
+
+これは信頼区間ではありません。標本誤差ではなく、「分析者が選びえた仮定の範囲」の上での答えの広がりです。
+
 ## 「型」が防ぐもの
 
 型は2つの層で検査されます。**意味の層**（`kind`、遷移の始点終点、母集団、推計品質、オントロジー）と、**次元の層**（単位の代数）です。
@@ -101,7 +126,7 @@ PYTHONPATH=. pytest -q
 - `S→M` の初婚数を `M` の exposure で割る、といった分母状態の取り違え。
 - 死亡数の `person` と exposure の `person-year` の意味混同。単位は基本次元 `person`・`year` 上の指数ベクトルなので、`person / (person-year) = 1/year` が**宣言ではなく計算で**出ます。人年でなく人頭数を分母に渡すと結果が無次元になり、ハザードとして弾かれます。
 - 「前婚解消時年齢」を「再婚時年齢」と無注記で同一視すること。
-- 2024年の配偶状態人口推計を観測値として扱うこと。
+- 2024年の配偶状態人口推計を観測値として扱うこと。推計値の型はさらに、依存している仮定の集合を持ちます。
 - オントロジーに存在しない遷移をモデルへ混入すること。許されていない遷移のハザードは、生成子行列に入る前に拒否されます。
 
 各変換は「型付け規則（signature）」と「行の計算」に分かれており、`check` と `run` は同じ signature を呼びます。したがって検査した型と実際に生成される型が食い違うことは起こりません。詳細は `docs/type_system.md`。
@@ -121,13 +146,15 @@ PYTHONPATH=. pytest -q
 ```text
 mslt/
   units.py        dimensional algebra (person, year)
-  types.py        semantic/refinement types
+  assumptions.py  named assumptions + their sweep ranges
+  types.py        semantic/refinement types + assumption dependency
+  sensitivity.py  assumption sweep driver
   ontology.py     state-transition ontology + induced state space
   adapters.py     e-Stat / JMD semantic lift (+ type-level signatures)
   transforms.py   typing rules + typed transformations + Markov life table
   dsl.py          small DSL parser
   engine.py       static type checker + execution engine
-  cli.py          check / explain / run
+  cli.py          check / explain / run / sensitivity
 ontology/
   marital.yaml
   marital_absorbing_dissolution.yaml   再婚なしの変種

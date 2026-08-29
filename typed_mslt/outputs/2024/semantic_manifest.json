@@ -2,6 +2,7 @@
   "deaths": {
     "type": "DeathCount[age,sex,state,year; 5y_80plus; person]",
     "rows": 1120,
+    "depends_on": [],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00450011_260828095117.csv",
       "e-Stat mortality table 7"
@@ -11,6 +12,7 @@
   "census": {
     "type": "MaritalPopulation[age,sex,state,year; 5y_80plus; person]",
     "rows": 2240,
+    "depends_on": [],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred"
@@ -20,6 +22,7 @@
   "first_marriage": {
     "type": "TransitionCount<S->M>[age,from_state,sex,to_state,year; 5y_80plus; person]",
     "rows": 280,
+    "depends_on": [],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻３FEH_00450011_260828115054.csv",
       "e-Stat marriage table 3 (初婚)"
@@ -29,6 +32,7 @@
   "divorce": {
     "type": "TransitionCount<M->V>[age,from_state,sex,to_state,year; 5y_80plus; person]",
     "rows": 280,
+    "depends_on": [],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/離婚・中巻３FEH_00450011_260828115506.csv",
       "e-Stat divorce table 3"
@@ -38,6 +42,7 @@
   "widowhood": {
     "type": "TransitionCount<M->W>[age,from_state,sex,to_state,year; 5y_80plus; person]",
     "rows": 280,
+    "depends_on": [],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
       "e-Stat stored mortality table 1; spouse-age margin"
@@ -47,6 +52,9 @@
   "remarriage_w": {
     "type": "Estimated<TransitionCount<W->M>[age,from_state,sex,to_state,year; 5y_80plus; person]>",
     "rows": 280,
+    "depends_on": [
+      "remarriage_tail_years"
+    ],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (死別)"
@@ -58,6 +66,9 @@
   "remarriage_v": {
     "type": "Estimated<TransitionCount<V->M>[age,from_state,sex,to_state,year; 5y_80plus; person]>",
     "rows": 280,
+    "depends_on": [
+      "remarriage_tail_years"
+    ],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (離別)"
@@ -69,6 +80,7 @@
   "jmd": {
     "type": "Exposure[age,sex,year; 5y_80plus; person-year]",
     "rows": 56,
+    "depends_on": [],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1"
@@ -78,17 +90,23 @@
   "share": {
     "type": "Estimated<MaritalShare[age,sex,state,year; 5y_80plus; proportion]>",
     "rows": 56,
+    "depends_on": [
+      "share_extrapolation"
+    ],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred"
     ],
     "assumptions": [
-      "linear extrapolation of marital shares from 2015,2020 to 2024; clipped at zero and renormalized"
+      "linear extrapolation of marital shares from 2015,2020 to 2024 at strength 1; clipped at zero and renormalized"
     ]
   },
   "state_exposure": {
     "type": "Estimated<StateExposure[age,sex,state,year; 5y_80plus; person-year]>",
     "rows": 56,
+    "depends_on": [
+      "share_extrapolation"
+    ],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
@@ -96,12 +114,15 @@
       "e-Stat census marital-status time series; complemented values preferred"
     ],
     "assumptions": [
-      "linear extrapolation of marital shares from 2015,2020 to 2024; clipped at zero and renormalized"
+      "linear extrapolation of marital shares from 2015,2020 to 2024 at strength 1; clipped at zero and renormalized"
     ]
   },
   "death_rate": {
     "type": "Estimated<HazardRate<?->D>[age,from_state,sex,to_state,year; 5y_80plus; 1/year]>",
     "rows": 56,
+    "depends_on": [
+      "share_extrapolation"
+    ],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00450011_260828095117.csv",
       "e-Stat mortality table 7",
@@ -111,12 +132,16 @@
       "e-Stat census marital-status time series; complemented values preferred"
     ],
     "assumptions": [
-      "linear extrapolation of marital shares from 2015,2020 to 2024; clipped at zero and renormalized"
+      "linear extrapolation of marital shares from 2015,2020 to 2024 at strength 1; clipped at zero and renormalized"
     ]
   },
   "social_rate": {
     "type": "Estimated<HazardRate[age,from_state,sex,to_state,year; 5y_80plus; 1/year]>",
     "rows": 70,
+    "depends_on": [
+      "remarriage_tail_years",
+      "share_extrapolation"
+    ],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
@@ -134,7 +159,7 @@
       "e-Stat marriage table 7 (離別)"
     ],
     "assumptions": [
-      "linear extrapolation of marital shares from 2015,2020 to 2024; clipped at zero and renormalized",
+      "linear extrapolation of marital shares from 2015,2020 to 2024 at strength 1; clipped at zero and renormalized",
       "11+ years since dissolution represented by 12 years",
       "11+ years since dissolution represented by 12 years"
     ]
@@ -142,6 +167,10 @@
   "generator": {
     "type": "Estimated<GeneratorMatrix[age,sex,year; 5y_80plus; 1/year]>",
     "rows": 14,
+    "depends_on": [
+      "remarriage_tail_years",
+      "share_extrapolation"
+    ],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00450011_260828095117.csv",
       "e-Stat mortality table 7",
@@ -165,8 +194,8 @@
       "e-Stat marriage table 7 (離別)"
     ],
     "assumptions": [
-      "linear extrapolation of marital shares from 2015,2020 to 2024; clipped at zero and renormalized",
-      "linear extrapolation of marital shares from 2015,2020 to 2024; clipped at zero and renormalized",
+      "linear extrapolation of marital shares from 2015,2020 to 2024 at strength 1; clipped at zero and renormalized",
+      "linear extrapolation of marital shares from 2015,2020 to 2024 at strength 1; clipped at zero and renormalized",
       "11+ years since dissolution represented by 12 years",
       "11+ years since dissolution represented by 12 years"
     ]
@@ -174,6 +203,10 @@
   "probabilities": {
     "type": "Estimated<TransitionMatrix[age,sex,year; 5y_80plus; probability]>",
     "rows": 14,
+    "depends_on": [
+      "remarriage_tail_years",
+      "share_extrapolation"
+    ],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00450011_260828095117.csv",
       "e-Stat mortality table 7",
@@ -197,8 +230,8 @@
       "e-Stat marriage table 7 (離別)"
     ],
     "assumptions": [
-      "linear extrapolation of marital shares from 2015,2020 to 2024; clipped at zero and renormalized",
-      "linear extrapolation of marital shares from 2015,2020 to 2024; clipped at zero and renormalized",
+      "linear extrapolation of marital shares from 2015,2020 to 2024 at strength 1; clipped at zero and renormalized",
+      "linear extrapolation of marital shares from 2015,2020 to 2024 at strength 1; clipped at zero and renormalized",
       "11+ years since dissolution represented by 12 years",
       "11+ years since dissolution represented by 12 years"
     ]
@@ -206,6 +239,11 @@
   "life_table": {
     "type": "Estimated<MultiStateLifeTable[age,state; 5y_80plus; person]>",
     "rows": 21,
+    "depends_on": [
+      "cohort_closure",
+      "remarriage_tail_years",
+      "share_extrapolation"
+    ],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00450011_260828095117.csv",
       "e-Stat mortality table 7",
@@ -229,8 +267,8 @@
       "e-Stat marriage table 7 (離別)"
     ],
     "assumptions": [
-      "linear extrapolation of marital shares from 2015,2020 to 2024; clipped at zero and renormalized",
-      "linear extrapolation of marital shares from 2015,2020 to 2024; clipped at zero and renormalized",
+      "linear extrapolation of marital shares from 2015,2020 to 2024 at strength 1; clipped at zero and renormalized",
+      "linear extrapolation of marital shares from 2015,2020 to 2024 at strength 1; clipped at zero and renormalized",
       "11+ years since dissolution represented by 12 years",
       "11+ years since dissolution represented by 12 years",
       "radix=100000; initial state=S; 80+ hazards held constant through 120"
@@ -239,6 +277,11 @@
   "indicators": {
     "type": "Estimated<LifeCourseIndicator[indicator,state; 5y_80plus; mixed]>",
     "rows": 6,
+    "depends_on": [
+      "cohort_closure",
+      "remarriage_tail_years",
+      "share_extrapolation"
+    ],
     "provenance": [
       "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00450011_260828095117.csv",
       "e-Stat mortality table 7",
@@ -262,8 +305,8 @@
       "e-Stat marriage table 7 (離別)"
     ],
     "assumptions": [
-      "linear extrapolation of marital shares from 2015,2020 to 2024; clipped at zero and renormalized",
-      "linear extrapolation of marital shares from 2015,2020 to 2024; clipped at zero and renormalized",
+      "linear extrapolation of marital shares from 2015,2020 to 2024 at strength 1; clipped at zero and renormalized",
+      "linear extrapolation of marital shares from 2015,2020 to 2024 at strength 1; clipped at zero and renormalized",
       "11+ years since dissolution represented by 12 years",
       "11+ years since dissolution represented by 12 years",
       "radix=100000; initial state=S; 80+ hazards held constant through 120"
