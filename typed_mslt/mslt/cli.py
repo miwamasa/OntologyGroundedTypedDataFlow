@@ -1,15 +1,29 @@
 from __future__ import annotations
 import argparse, json, sys
+from pathlib import Path
 from .engine import Engine
+from .sensitivity import sweep, format_report
 
 def main(argv=None):
     p=argparse.ArgumentParser(prog='mslt',description='Ontology-grounded typed multistate life-table pipeline')
     sub=p.add_subparsers(dest='cmd',required=True)
-    for cmd in ['check','run','explain']:
+    for cmd in ['check','run','explain','sensitivity']:
         q=sub.add_parser(cmd); q.add_argument('program'); q.add_argument('--data-root',default='.'); q.add_argument('--out',default='outputs')
         q.add_argument('--ontology',default=None,help='model against a different ontology YAML')
+        if cmd=='sensitivity':
+            q.add_argument('--target',default='indicators',help='which node to sweep (default: indicators)')
+            q.add_argument('--no-envelope',action='store_true',help='skip the full combination sweep')
     a=p.parse_args(argv)
     try:
+        if a.cmd=='sensitivity':
+            report=sweep(a.program,a.data_root,a.ontology,a.target,envelope=not a.no_envelope)
+            print(format_report(report))
+            out=Path(a.out); out.mkdir(parents=True,exist_ok=True)
+            dest=out/'sensitivity.json'
+            dest.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+            print(f'\nWrote {dest}')
+            return 0
+
         e=Engine(a.program,a.data_root,a.ontology)
         if a.cmd=='check':
             # Type-level evaluation only: no CSV is opened, so this reports
@@ -18,7 +32,8 @@ def main(argv=None):
             print(f'  {e.ontology.describe()}')
             width=max((len(k) for k in tenv),default=0)
             for name,t in tenv.items():
-                print(f'  {name.ljust(width)} : {t.short()}')
+                deps=f"   rests on: {', '.join(sorted(t.depends_on))}" if t.depends_on else ""
+                print(f'  {name.ljust(width)} : {t.short()}{deps}')
             print(f'OK: {e.program.name}; {len(tenv)} typed nodes')
             return 0
         env=e.run()

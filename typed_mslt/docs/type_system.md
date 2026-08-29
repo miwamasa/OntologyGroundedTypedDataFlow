@@ -85,6 +85,41 @@ Observed<Exposure> × Estimated<MaritalShare>
 
 品質は2点束 `Observed ⊑ Estimated` 上の join である。
 
+## 推計は「印」ではなく「依存集合」
+
+`quality` は「推計値である」という1ビットの答えでしかない。より重要な問いは**何の上に推計されているか**である。そこで型は `depends_on`、すなわち依存している**名前付き仮定の集合**を持つ。品質と同じ向きに join される。
+
+```text
+remarriage_w   : {remarriage_tail_years}
+share          : {share_extrapolation}
+death_rate     : {share_extrapolation}
+social_rate    : {share_extrapolation, remarriage_tail_years}
+life_table     : {share_extrapolation, remarriage_tail_years, cohort_closure}
+indicators     : {share_extrapolation, remarriage_tail_years, cohort_closure}
+```
+
+`death_rate` が再婚表に触れないことは型から分かるので、**再婚の仮定は死亡ハザードを動かしえない**。この「動かしえなさ」が静的に決まる点が重要で、感度分析は当て推量をせずに済む。`depends_on` が空でありながら `Observed` でない、あるいはその逆は、型の構築時に拒否される。
+
+仮定は `mslt/assumptions.py` に、名前・導入する操作・振るパラメタ・振れ幅とともに1箇所で宣言される。
+
+| 名前 | 操作 | パラメタ | 意味 |
+|---|---|---|---|
+| `share_extrapolation` | `extrapolate_share` | `strength` | 2015→2020 の傾きを2024へどれだけ延長するか（0=据え置き, 1=線形外挿） |
+| `remarriage_tail_years` | `estat_remarriage7` | `tail_years` | 「解消から11年以上」を代表させる年数 |
+| `cohort_closure` | `multistate_life_table` | `max_age` | 合成コホートを閉じる上限年齢 |
+
+## 感度分析
+
+```bash
+mslt sensitivity examples/male_2024.mslt --data-root . --out outputs/2024
+```
+
+型が到達可能と判定した仮定**だけ**を振る。2020年の検証パイプラインは `observed_share` を使うので、`share_extrapolation` は到達不能と判定され、掃引の対象から外れる（`cannot be moved by: share_extrapolation`）。
+
+出力は2種類。**one-at-a-time** は仮定を1つだけ動かし、動きの原因を特定する。**envelope** は全組み合わせを取り、指標の振れ幅の全体を出す。
+
+これは信頼区間ではない。入力は確率分布ではなく「分析者が選びえた選択肢の範囲」であり、出力はその範囲上での答えの広がりである。標本誤差も公表表の精度も含まれていない。
+
 ## Ontology-licensed transitions
 
 ```text

@@ -2,6 +2,7 @@ from __future__ import annotations
 from collections import defaultdict
 from pathlib import Path
 import re
+from .assumptions import REMARRIAGE_TAIL
 from .frame import SemanticFrame
 from .types import SemanticType, Quality
 from .utils import read_cp932, number, norm_year, age_band_from_label, CANON_BANDS, STATES_JA, SEX_JA
@@ -41,9 +42,13 @@ def ty_estat_spousal_death(path=None) -> SemanticType:
                         source_state="M",target_state="W")
 
 def ty_estat_remarriage7(path=None, prior: str="死別", tail_years: float=12.0) -> SemanticType:
+    # Age at remarriage is reconstructed from age at dissolution plus elapsed
+    # years, and the open "11 years or more" cell has to be represented by some
+    # single figure. That choice is the REMARRIAGE_TAIL knob.
     return SemanticType("TransitionCount",TDIMS,"person",AGE_SCHEME,quality=Quality.ESTIMATED,
                         source_state="W" if prior=="死別" else "V",target_state="M",
-                        note="current remarriage age derived from dissolution age + elapsed years")
+                        note="current remarriage age derived from dissolution age + elapsed years",
+                        depends_on={REMARRIAGE_TAIL})
 
 def ty_jmd5(path=None) -> SemanticType:
     return SemanticType("Exposure",frozenset({"year","sex","age"}),"person-year",AGE_SCHEME,

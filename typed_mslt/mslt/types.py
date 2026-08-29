@@ -21,18 +21,30 @@ class SemanticType:
     source_state: Optional[str] = None
     target_state: Optional[str] = None
     note: str = ""
+    # The named assumptions this value's number depends on. `quality` says
+    # *that* a value is estimated; this says *what it is estimated on*, which
+    # is what makes the estimate's sensitivity mechanically analysable: only
+    # these knobs can move it, and nothing else can.
+    depends_on: FrozenSet[str] = field(default_factory=frozenset)
 
     def __post_init__(self) -> None:
         # Units may be written as strings at the construction site; normalize
         # them so every type carries a unit the algebra can operate on.
         if not isinstance(self.unit, Unit):
             object.__setattr__(self, "unit", Unit.parse(self.unit))
+        if not isinstance(self.depends_on, frozenset):
+            object.__setattr__(self, "depends_on", frozenset(self.depends_on))
+        if self.depends_on and self.quality is not Quality.ESTIMATED:
+            raise SemanticTypeError(
+                f"{self.kind}: depends on assumptions {sorted(self.depends_on)} "
+                "but is declared Observed"
+            )
 
     def with_quality(self, q: Quality, note: str = "") -> "SemanticType":
         return SemanticType(
             self.kind, self.dims, self.unit, self.age_scheme, self.universe,
             self.time_semantics, q, self.source_state, self.target_state,
-            note or self.note,
+            note or self.note, self.depends_on,
         )
 
     def short(self) -> str:
@@ -86,3 +98,16 @@ def multiply_units(a: Unit, b: Unit, op: str) -> Unit:
 
 def join_quality(*types: SemanticType) -> Quality:
     return Quality.ESTIMATED if any(t.quality == Quality.ESTIMATED for t in types) else Quality.OBSERVED
+
+def join_depends(*types: SemanticType, adding: FrozenSet[str] | set[str] | None = None) -> FrozenSet[str]:
+    """Union the assumption sets of the inputs, plus any this step introduces.
+
+    Dependency flows the same way quality does: a result rests on every
+    assumption any of its inputs rested on. Tracking the set rather than a
+    single flag is what lets a sensitivity sweep vary exactly the knobs an
+    output can respond to.
+    """
+    out: set[str] = set(adding or ())
+    for t in types:
+        out |= t.depends_on
+    return frozenset(out)
