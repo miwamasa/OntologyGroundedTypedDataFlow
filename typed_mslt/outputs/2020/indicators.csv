@@ -1,0 +1,7 @@
+﻿indicator,state,value,unit
+MeanAgeAtDeath,S,77.49780693608213,years
+MeanAgeAtDeath,M,82.36715866082196,years
+MeanAgeAtDeath,W,90.92923061218814,years
+MeanAgeAtDeath,V,75.43283601954236,years
+MeanAgeAtDeath,NON_S,83.6398281420621,years
+DeathShare,S,0.4380667940645474,proportion

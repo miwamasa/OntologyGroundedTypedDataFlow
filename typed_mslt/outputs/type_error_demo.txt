@@ -1,0 +1,2 @@
+ERROR: partition_exposure: expected Exposure, got DeathCount[age,sex,state,year; 5y_80plus; person]
+EXIT=2

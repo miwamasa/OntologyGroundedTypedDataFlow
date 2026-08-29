@@ -1,0 +1,6 @@
+pipeline deliberate_type_error
+source deaths :: DeathCount = estat_death("FEH_00450011_260828095117.csv")
+source census :: MaritalPopulation = estat_census5("FEH_00200521_260828100536.csv")
+let share = observed_share(census, year=2020, sex="male")
+# Wrong on purpose: partition_exposure requires Exposure, not DeathCount.
+emit bad = partition_exposure(deaths, share, year=2020, sex="male")

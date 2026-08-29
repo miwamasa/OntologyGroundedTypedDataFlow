@@ -1,0 +1,17 @@
+flowchart LR
+  A1[死亡 CSV\nDeathCount] --> H1
+  A2[国勢調査 CSV\nMaritalPopulation] --> S1[MaritalShare]
+  A3[JMD\nExposure] --> E1[StateExposure]
+  S1 --> E1
+  A4[婚姻 中巻3\nS→M] --> H2
+  A5[離婚 中巻3\nM→V] --> H2
+  A6[有配偶死亡\nM→W] --> H2
+  A7[婚姻 中巻7\nW/V→M] --> R[再婚年齢の意味変換]
+  R --> H2
+  E1 --> H1[Death Hazard]
+  E1 --> H2[Social Hazards]
+  H1 --> G[Generator Matrix G(x)]
+  H2 --> G
+  G --> P[Transition Matrix\nP(x)=expm(5G(x))]
+  P --> L[Multi-State Life Table]
+  L --> I[Mean age at death / state durations]

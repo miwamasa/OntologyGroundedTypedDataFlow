@@ -1,0 +1,17 @@
+states:
+  S: NeverMarried
+  M: Married
+  W: Widowed
+  V: Divorced
+  D: Dead
+absorbing: D
+transitions:
+  first_marriage: {from: S, to: M, semantics: "first marriage"}
+  spouse_death: {from: M, to: W, semantics: "death of spouse"}
+  divorce: {from: M, to: V, semantics: "divorce/separation"}
+  remarriage_widowed: {from: W, to: M, semantics: "remarriage after widowhood"}
+  remarriage_divorced: {from: V, to: M, semantics: "remarriage after divorce"}
+  death_S: {from: S, to: D, semantics: "death while never married"}
+  death_M: {from: M, to: D, semantics: "death while married"}
+  death_W: {from: W, to: D, semantics: "death while widowed"}
+  death_V: {from: V, to: D, semantics: "death while divorced"}
