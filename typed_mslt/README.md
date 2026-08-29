@@ -48,7 +48,7 @@ emit indicators = indicators(life_table)
 
 ## 実行
 
-この zip を `/mnt/data/typed_mslt` 相当のフォルダに展開し、元 CSV をデータルートに置いた場合:
+元 CSV は `typed_mslt/data/input_csv/` に置きます。リポジトリのルートを `--data-root` として、リポジトリルートから実行します:
 
 ```bash
 PYTHONPATH=typed_mslt python -m mslt check typed_mslt/examples/male_2024.mslt --data-root .
