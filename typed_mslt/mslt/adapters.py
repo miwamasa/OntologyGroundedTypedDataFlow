@@ -10,6 +10,45 @@ AGE_SCHEME="5y_80plus"
 DIMS=frozenset({"year","sex","age","state"})
 TDIMS=frozenset({"year","sex","age","from_state","to_state"})
 
+# --------------------------------------------------------------------------
+# Type-level signatures. A source's semantic type depends on which table it
+# reads and the arguments given, never on the file's contents, so these can be
+# evaluated with no data present. Each adapter below asks its own signature for
+# the type it returns, so `mslt check` and `mslt run` cannot drift apart.
+#
+# An occurrence-exposure numerator counts the persons who experienced the
+# event, so transition counts are measured in `person`, the same dimension as a
+# death count. That is what makes both hazard paths derive to 1/year.
+# --------------------------------------------------------------------------
+
+def ty_estat_death(path=None) -> SemanticType:
+    return SemanticType("DeathCount",DIMS,"person",AGE_SCHEME,quality=Quality.OBSERVED)
+
+def ty_estat_census5(path=None) -> SemanticType:
+    return SemanticType("MaritalPopulation",DIMS,"person",AGE_SCHEME,time_semantics="CensusPoint",
+                        quality=Quality.OBSERVED,note="2015/2020: 不詳補完値 preferred when available")
+
+def ty_estat_marriage3(path=None, kind: str="first") -> SemanticType:
+    return SemanticType("TransitionCount",TDIMS,"person",AGE_SCHEME,quality=Quality.OBSERVED,
+                        source_state="S" if kind=="first" else None,target_state="M")
+
+def ty_estat_divorce3(path=None) -> SemanticType:
+    return SemanticType("TransitionCount",TDIMS,"person",AGE_SCHEME,quality=Quality.OBSERVED,
+                        source_state="M",target_state="V")
+
+def ty_estat_spousal_death(path=None) -> SemanticType:
+    return SemanticType("TransitionCount",TDIMS,"person",AGE_SCHEME,quality=Quality.OBSERVED,
+                        source_state="M",target_state="W")
+
+def ty_estat_remarriage7(path=None, prior: str="死別", tail_years: float=12.0) -> SemanticType:
+    return SemanticType("TransitionCount",TDIMS,"person",AGE_SCHEME,quality=Quality.ESTIMATED,
+                        source_state="W" if prior=="死別" else "V",target_state="M",
+                        note="current remarriage age derived from dissolution age + elapsed years")
+
+def ty_jmd5(path=None) -> SemanticType:
+    return SemanticType("Exposure",frozenset({"year","sex","age"}),"person-year",AGE_SCHEME,
+                        quality=Quality.OBSERVED)
+
 def estat_death(path: str) -> SemanticFrame:
     rows=read_cp932(path); h=rows[12]; out=[]
     for r in rows[13:]:
@@ -24,8 +63,7 @@ def estat_death(path: str) -> SemanticFrame:
     agg=defaultdict(float)
     for x in out: agg[(x["year"],x["sex"],x["age"],x["state"])]+=x["value"]
     out=[{"year":y,"sex":s,"age":a,"state":st,"value":v} for (y,s,a,st),v in agg.items()]
-    t=SemanticType("DeathCount",DIMS,"person",AGE_SCHEME,quality=Quality.OBSERVED)
-    return SemanticFrame("deaths",t,out,[str(path),"e-Stat mortality table 7"])
+    return SemanticFrame("deaths",ty_estat_death(),out,[str(path),"e-Stat mortality table 7"])
 
 def estat_census5(path: str) -> SemanticFrame:
     rows=read_cp932(path); candidates={}
@@ -44,9 +82,7 @@ def estat_census5(path: str) -> SemanticFrame:
             if k not in candidates or priority>candidates[k][0]: candidates[k]=(priority,v)
             elif priority==candidates[k][0]: candidates[k]=(priority,candidates[k][1]+v)
     out=[{"year":y,"sex":s,"age":a,"state":st,"value":pv[1]} for (y,s,a,st),pv in candidates.items()]
-    t=SemanticType("MaritalPopulation",DIMS,"person",AGE_SCHEME,time_semantics="CensusPoint",quality=Quality.OBSERVED,
-                   note="2015/2020: 不詳補完値 preferred when available")
-    return SemanticFrame("census",t,out,[str(path),"e-Stat census marital-status time series; complemented values preferred"])
+    return SemanticFrame("census",ty_estat_census5(),out,[str(path),"e-Stat census marital-status time series; complemented values preferred"])
 
 def estat_marriage3(path: str, kind: str="first") -> SemanticFrame:
     rows=read_cp932(path); out=[]
@@ -59,9 +95,7 @@ def estat_marriage3(path: str, kind: str="first") -> SemanticFrame:
     agg=defaultdict(float)
     for x in out: agg[(x["year"],x["sex"],x["age"],x["from_state"],x["to_state"])]+=x["value"]
     out=[{"year":y,"sex":s,"age":a,"from_state":f,"to_state":to,"value":v} for (y,s,a,f,to),v in agg.items()]
-    src="S" if kind=="first" else None
-    t=SemanticType("TransitionCount",TDIMS,"event",AGE_SCHEME,quality=Quality.OBSERVED,source_state=src,target_state="M")
-    return SemanticFrame(kind,t,out,[str(path),f"e-Stat marriage table 3 ({wanted})"])
+    return SemanticFrame(kind,ty_estat_marriage3(kind=kind),out,[str(path),f"e-Stat marriage table 3 ({wanted})"])
 
 def estat_divorce3(path: str) -> SemanticFrame:
     rows=read_cp932(path); header=rows[12]; out=[]
@@ -82,8 +116,7 @@ def estat_divorce3(path: str) -> SemanticFrame:
     agg=defaultdict(float)
     for x in out: agg[(x["year"],x["sex"],x["age"],"M","V")]+=x["value"]
     out=[{"year":y,"sex":s,"age":a,"from_state":"M","to_state":"V","value":v} for (y,s,a,_,_),v in agg.items()]
-    t=SemanticType("TransitionCount",TDIMS,"event",AGE_SCHEME,quality=Quality.OBSERVED,source_state="M",target_state="V")
-    return SemanticFrame("divorce",t,out,[str(path),"e-Stat divorce table 3"])
+    return SemanticFrame("divorce",ty_estat_divorce3(),out,[str(path),"e-Stat divorce table 3"])
 
 def estat_spousal_death(path: str) -> SemanticFrame:
     rows=read_cp932(path); header=rows[12]; out=[]
@@ -102,8 +135,7 @@ def estat_spousal_death(path: str) -> SemanticFrame:
     agg=defaultdict(float)
     for x in out: agg[(x["year"],x["sex"],x["age"],"M","W")]+=x["value"]
     out=[{"year":y,"sex":s,"age":a,"from_state":"M","to_state":"W","value":v} for (y,s,a,_,_),v in agg.items()]
-    t=SemanticType("TransitionCount",TDIMS,"event",AGE_SCHEME,quality=Quality.OBSERVED,source_state="M",target_state="W")
-    return SemanticFrame("widowhood",t,out,[str(path),"e-Stat stored mortality table 1; spouse-age margin"])
+    return SemanticFrame("widowhood",ty_estat_spousal_death(),out,[str(path),"e-Stat stored mortality table 1; spouse-age margin"])
 
 def estat_remarriage7(path: str, prior: str, tail_years: float=12.0) -> SemanticFrame:
     rows=read_cp932(path); out=[]
@@ -126,9 +158,7 @@ def estat_remarriage7(path: str, prior: str, tail_years: float=12.0) -> Semantic
     agg=defaultdict(float)
     for x in out: agg[(x["year"],x["sex"],x["age"],src,"M")]+=x["value"]
     out=[{"year":y,"sex":s,"age":a,"from_state":src,"to_state":"M","value":v} for (y,s,a,_,_),v in agg.items()]
-    t=SemanticType("TransitionCount",TDIMS,"event",AGE_SCHEME,quality=Quality.ESTIMATED,source_state=src,target_state="M",
-                   note="current remarriage age derived from dissolution age + elapsed years")
-    return SemanticFrame(f"remarriage_{src}",t,out,[str(path),f"e-Stat marriage table 7 ({prior})"],
+    return SemanticFrame(f"remarriage_{src}",ty_estat_remarriage7(prior=prior,tail_years=tail_years),out,[str(path),f"e-Stat marriage table 7 ({prior})"],
                          [f"11+ years since dissolution represented by {tail_years:g} years"])
 
 def jmd5(path: str) -> SemanticFrame:
@@ -149,8 +179,17 @@ def jmd5(path: str) -> SemanticFrame:
     agg=defaultdict(float)
     for x in out: agg[(x["year"],x["sex"],x["age"])]+=x["value"]
     out=[{"year":y,"sex":s,"age":a,"value":v} for (y,s,a),v in agg.items()]
-    t=SemanticType("Exposure",frozenset({"year","sex","age"}),"person-year",AGE_SCHEME,quality=Quality.OBSERVED)
-    return SemanticFrame("jmd",t,out,[str(path),"JMD/IPSS exposure-to-risk, 5x1"])
+    return SemanticFrame("jmd",ty_jmd5(),out,[str(path),"JMD/IPSS exposure-to-risk, 5x1"])
+
+ADAPTER_TYPES={
+    "estat_death": ty_estat_death,
+    "estat_census5": ty_estat_census5,
+    "estat_marriage3": ty_estat_marriage3,
+    "estat_divorce3": ty_estat_divorce3,
+    "estat_spousal_death": ty_estat_spousal_death,
+    "estat_remarriage7": ty_estat_remarriage7,
+    "jmd5": ty_jmd5,
+}
 
 ADAPTERS={
     "estat_death": estat_death,

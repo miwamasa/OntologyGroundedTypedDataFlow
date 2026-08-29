@@ -3,7 +3,7 @@
     "type": "DeathCount[age,sex,state,year; 5y_80plus; person]",
     "rows": 1120,
     "provenance": [
-      "/mnt/data/FEH_00450011_260828095117.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00450011_260828095117.csv",
       "e-Stat mortality table 7"
     ],
     "assumptions": []
@@ -12,43 +12,43 @@
     "type": "MaritalPopulation[age,sex,state,year; 5y_80plus; person]",
     "rows": 2240,
     "provenance": [
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred"
     ],
     "assumptions": []
   },
   "first_marriage": {
-    "type": "TransitionCount<S->M>[age,from_state,sex,to_state,year; 5y_80plus; event]",
+    "type": "TransitionCount<S->M>[age,from_state,sex,to_state,year; 5y_80plus; person]",
     "rows": 280,
     "provenance": [
-      "/mnt/data/婚姻・中巻３FEH_00450011_260828115054.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻３FEH_00450011_260828115054.csv",
       "e-Stat marriage table 3 (初婚)"
     ],
     "assumptions": []
   },
   "divorce": {
-    "type": "TransitionCount<M->V>[age,from_state,sex,to_state,year; 5y_80plus; event]",
+    "type": "TransitionCount<M->V>[age,from_state,sex,to_state,year; 5y_80plus; person]",
     "rows": 280,
     "provenance": [
-      "/mnt/data/離婚・中巻３FEH_00450011_260828115506.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/離婚・中巻３FEH_00450011_260828115506.csv",
       "e-Stat divorce table 3"
     ],
     "assumptions": []
   },
   "widowhood": {
-    "type": "TransitionCount<M->W>[age,from_state,sex,to_state,year; 5y_80plus; event]",
+    "type": "TransitionCount<M->W>[age,from_state,sex,to_state,year; 5y_80plus; person]",
     "rows": 280,
     "provenance": [
-      "/mnt/data/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
       "e-Stat stored mortality table 1; spouse-age margin"
     ],
     "assumptions": []
   },
   "remarriage_w": {
-    "type": "Estimated<TransitionCount<W->M>[age,from_state,sex,to_state,year; 5y_80plus; event]>",
+    "type": "Estimated<TransitionCount<W->M>[age,from_state,sex,to_state,year; 5y_80plus; person]>",
     "rows": 280,
     "provenance": [
-      "/mnt/data/婚姻・中巻７FEH_00450011_260828115229.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (死別)"
     ],
     "assumptions": [
@@ -56,10 +56,10 @@
     ]
   },
   "remarriage_v": {
-    "type": "Estimated<TransitionCount<V->M>[age,from_state,sex,to_state,year; 5y_80plus; event]>",
+    "type": "Estimated<TransitionCount<V->M>[age,from_state,sex,to_state,year; 5y_80plus; person]>",
     "rows": 280,
     "provenance": [
-      "/mnt/data/婚姻・中巻７FEH_00450011_260828115229.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (離別)"
     ],
     "assumptions": [
@@ -70,7 +70,7 @@
     "type": "Exposure[age,sex,year; 5y_80plus; person-year]",
     "rows": 56,
     "provenance": [
-      "/mnt/data/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1"
     ],
     "assumptions": []
@@ -79,7 +79,7 @@
     "type": "Estimated<MaritalShare[age,sex,state,year; 5y_80plus; proportion]>",
     "rows": 56,
     "provenance": [
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred"
     ],
     "assumptions": [
@@ -90,9 +90,9 @@
     "type": "Estimated<StateExposure[age,sex,state,year; 5y_80plus; person-year]>",
     "rows": 56,
     "provenance": [
-      "/mnt/data/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred"
     ],
     "assumptions": [
@@ -103,11 +103,11 @@
     "type": "Estimated<HazardRate<?->D>[age,from_state,sex,to_state,year; 5y_80plus; 1/year]>",
     "rows": 56,
     "provenance": [
-      "/mnt/data/FEH_00450011_260828095117.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00450011_260828095117.csv",
       "e-Stat mortality table 7",
-      "/mnt/data/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred"
     ],
     "assumptions": [
@@ -118,19 +118,19 @@
     "type": "Estimated<HazardRate[age,from_state,sex,to_state,year; 5y_80plus; 1/year]>",
     "rows": 70,
     "provenance": [
-      "/mnt/data/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred",
-      "/mnt/data/婚姻・中巻３FEH_00450011_260828115054.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻３FEH_00450011_260828115054.csv",
       "e-Stat marriage table 3 (初婚)",
-      "/mnt/data/離婚・中巻３FEH_00450011_260828115506.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/離婚・中巻３FEH_00450011_260828115506.csv",
       "e-Stat divorce table 3",
-      "/mnt/data/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
       "e-Stat stored mortality table 1; spouse-age margin",
-      "/mnt/data/婚姻・中巻７FEH_00450011_260828115229.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (死別)",
-      "/mnt/data/婚姻・中巻７FEH_00450011_260828115229.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (離別)"
     ],
     "assumptions": [
@@ -143,25 +143,25 @@
     "type": "Estimated<GeneratorMatrix[age,sex,year; 5y_80plus; 1/year]>",
     "rows": 14,
     "provenance": [
-      "/mnt/data/FEH_00450011_260828095117.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00450011_260828095117.csv",
       "e-Stat mortality table 7",
-      "/mnt/data/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred",
-      "/mnt/data/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred",
-      "/mnt/data/婚姻・中巻３FEH_00450011_260828115054.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻３FEH_00450011_260828115054.csv",
       "e-Stat marriage table 3 (初婚)",
-      "/mnt/data/離婚・中巻３FEH_00450011_260828115506.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/離婚・中巻３FEH_00450011_260828115506.csv",
       "e-Stat divorce table 3",
-      "/mnt/data/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
       "e-Stat stored mortality table 1; spouse-age margin",
-      "/mnt/data/婚姻・中巻７FEH_00450011_260828115229.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (死別)",
-      "/mnt/data/婚姻・中巻７FEH_00450011_260828115229.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (離別)"
     ],
     "assumptions": [
@@ -175,25 +175,25 @@
     "type": "Estimated<TransitionMatrix[age,sex,year; 5y_80plus; probability]>",
     "rows": 14,
     "provenance": [
-      "/mnt/data/FEH_00450011_260828095117.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00450011_260828095117.csv",
       "e-Stat mortality table 7",
-      "/mnt/data/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred",
-      "/mnt/data/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred",
-      "/mnt/data/婚姻・中巻３FEH_00450011_260828115054.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻３FEH_00450011_260828115054.csv",
       "e-Stat marriage table 3 (初婚)",
-      "/mnt/data/離婚・中巻３FEH_00450011_260828115506.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/離婚・中巻３FEH_00450011_260828115506.csv",
       "e-Stat divorce table 3",
-      "/mnt/data/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
       "e-Stat stored mortality table 1; spouse-age margin",
-      "/mnt/data/婚姻・中巻７FEH_00450011_260828115229.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (死別)",
-      "/mnt/data/婚姻・中巻７FEH_00450011_260828115229.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (離別)"
     ],
     "assumptions": [
@@ -204,28 +204,28 @@
     ]
   },
   "life_table": {
-    "type": "Estimated<MultiStateLifeTable[age,state; 5y_80plus; persons]>",
+    "type": "Estimated<MultiStateLifeTable[age,state; 5y_80plus; person]>",
     "rows": 21,
     "provenance": [
-      "/mnt/data/FEH_00450011_260828095117.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00450011_260828095117.csv",
       "e-Stat mortality table 7",
-      "/mnt/data/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred",
-      "/mnt/data/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred",
-      "/mnt/data/婚姻・中巻３FEH_00450011_260828115054.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻３FEH_00450011_260828115054.csv",
       "e-Stat marriage table 3 (初婚)",
-      "/mnt/data/離婚・中巻３FEH_00450011_260828115506.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/離婚・中巻３FEH_00450011_260828115506.csv",
       "e-Stat divorce table 3",
-      "/mnt/data/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
       "e-Stat stored mortality table 1; spouse-age margin",
-      "/mnt/data/婚姻・中巻７FEH_00450011_260828115229.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (死別)",
-      "/mnt/data/婚姻・中巻７FEH_00450011_260828115229.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (離別)"
     ],
     "assumptions": [
@@ -240,25 +240,25 @@
     "type": "Estimated<LifeCourseIndicator[indicator,state; 5y_80plus; mixed]>",
     "rows": 6,
     "provenance": [
-      "/mnt/data/FEH_00450011_260828095117.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00450011_260828095117.csv",
       "e-Stat mortality table 7",
-      "/mnt/data/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred",
-      "/mnt/data/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/jmd_exposure_5x1_2020_2024.txt",
       "JMD/IPSS exposure-to-risk, 5x1",
-      "/mnt/data/FEH_00200521_260828100536.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/FEH_00200521_260828100536.csv",
       "e-Stat census marital-status time series; complemented values preferred",
-      "/mnt/data/婚姻・中巻３FEH_00450011_260828115054.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻３FEH_00450011_260828115054.csv",
       "e-Stat marriage table 3 (初婚)",
-      "/mnt/data/離婚・中巻３FEH_00450011_260828115506.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/離婚・中巻３FEH_00450011_260828115506.csv",
       "e-Stat divorce table 3",
-      "/mnt/data/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/15歳以上有配偶死亡数，性・年齢（5歳階級）FEH_00450011_260828115640.csv",
       "e-Stat stored mortality table 1; spouse-age margin",
-      "/mnt/data/婚姻・中巻７FEH_00450011_260828115229.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (死別)",
-      "/mnt/data/婚姻・中巻７FEH_00450011_260828115229.csv",
+      "/home/user/OntologyGroundedTypedDataFlow/typed_mslt/data/input_csv/婚姻・中巻７FEH_00450011_260828115229.csv",
       "e-Stat marriage table 7 (離別)"
     ],
     "assumptions": [

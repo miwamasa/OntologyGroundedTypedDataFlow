@@ -10,9 +10,17 @@ def main(argv=None):
     a=p.parse_args(argv)
     try:
         e=Engine(a.program,a.data_root)
+        if a.cmd=='check':
+            # Type-level evaluation only: no CSV is opened, so this reports
+            # ill-typed programs even where the data is not available.
+            tenv=e.typecheck()
+            width=max((len(k) for k in tenv),default=0)
+            for name,t in tenv.items():
+                print(f'  {name.ljust(width)} : {t.short()}')
+            print(f'OK: {e.program.name}; {len(tenv)} typed nodes')
+            return 0
         env=e.run()
-        if a.cmd=='check': print(f'OK: {e.program.name}; {len(env)} typed nodes')
-        elif a.cmd=='explain': print('\n\n'.join(e.trace))
+        if a.cmd=='explain': print('\n\n'.join(e.trace))
         else:
             out=e.write_outputs(a.out); print(f'Wrote {out}')
             if 'indicators' in env:

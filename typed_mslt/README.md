@@ -56,6 +56,16 @@ PYTHONPATH=typed_mslt python -m mslt explain typed_mslt/examples/male_2024.mslt 
 PYTHONPATH=typed_mslt python -m mslt run typed_mslt/examples/male_2024.mslt --data-root . --out typed_mslt/outputs/2024
 ```
 
+`check` はパイプラインを型の解釈だけで評価するため、CSV を一切読みません（`--data-root` が存在しなくても型の誤りを報告します）。各ノードに導出された意味型を表示します:
+
+```text
+  jmd            : Exposure[age,sex,year; 5y_80plus; person-year]
+  share          : Estimated<MaritalShare[age,sex,state,year; 5y_80plus; proportion]>
+  state_exposure : Estimated<StateExposure[age,sex,state,year; 5y_80plus; person-year]>
+  death_rate     : Estimated<HazardRate<?->D>[age,from_state,sex,to_state,year; 5y_80plus; 1/year]>
+  ...
+```
+
 テスト:
 
 ```bash
@@ -76,11 +86,15 @@ PYTHONPATH=. pytest -q
 
 ## 「型」が防ぐもの
 
+型は2つの層で検査されます。**意味の層**（`kind`、遷移の始点終点、母集団、推計品質、オントロジー）と、**次元の層**（単位の代数）です。
+
 - `S→M` の初婚数を `M` の exposure で割る、といった分母状態の取り違え。
-- 死亡数の `person` と exposure の `person-year` の意味混同。
+- 死亡数の `person` と exposure の `person-year` の意味混同。単位は基本次元 `person`・`year` 上の指数ベクトルなので、`person / (person-year) = 1/year` が**宣言ではなく計算で**出ます。人年でなく人頭数を分母に渡すと結果が無次元になり、ハザードとして弾かれます。
 - 「前婚解消時年齢」を「再婚時年齢」と無注記で同一視すること。
 - 2024年の配偶状態人口推計を観測値として扱うこと。
 - オントロジーに存在しない遷移をモデルへ混入すること。
+
+各変換は「型付け規則（signature）」と「行の計算」に分かれており、`check` と `run` は同じ signature を呼びます。したがって検査した型と実際に生成される型が食い違うことは起こりません。詳細は `docs/type_system.md`。
 
 ## 今回の推計に残る仮定
 
@@ -96,12 +110,13 @@ PYTHONPATH=. pytest -q
 
 ```text
 mslt/
+  units.py        dimensional algebra (person, year)
   types.py        semantic/refinement types
   ontology.py     state-transition ontology
-  adapters.py     e-Stat / JMD semantic lift
-  transforms.py   typed transformations + Markov life table
+  adapters.py     e-Stat / JMD semantic lift (+ type-level signatures)
+  transforms.py   typing rules + typed transformations + Markov life table
   dsl.py          small DSL parser
-  engine.py       compiler/execution engine
+  engine.py       static type checker + execution engine
   cli.py          check / explain / run
 ontology/
   marital.yaml
