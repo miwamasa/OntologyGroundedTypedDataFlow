@@ -1,0 +1,31 @@
+# A variant model in which marital dissolution is terminal: once widowed or
+# divorced, a cohort member never remarries.
+#
+# The states are the same, but dropping the two remarriage edges changes what
+# the model admits. Running examples/male_2024.mslt against this ontology fails
+# at type-check time, because that program builds hazards for W->M and V->M:
+#
+#   mslt check examples/male_2024.mslt --ontology ontology/marital_absorbing_dissolution.yaml
+#   ERROR: source remarriage_w: transition W->M is not licensed by ontology
+#          'marital_absorbing_dissolution'
+#
+# That is the ontology doing structural work rather than decorating the run: a
+# transition the model does not license cannot enter the generator, and the
+# program is rejected before any CSV is opened.
+name: marital_absorbing_dissolution
+states:
+  S: NeverMarried
+  M: Married
+  W: Widowed
+  V: Divorced
+  D: Dead
+absorbing: D
+reference_state: S
+transitions:
+  first_marriage: {from: S, to: M, semantics: "first marriage"}
+  spouse_death: {from: M, to: W, semantics: "death of spouse"}
+  divorce: {from: M, to: V, semantics: "divorce/separation"}
+  death_S: {from: S, to: D, semantics: "death while never married"}
+  death_M: {from: M, to: D, semantics: "death while married"}
+  death_W: {from: W, to: D, semantics: "death while widowed"}
+  death_V: {from: V, to: D, semantics: "death while divorced"}

@@ -22,6 +22,16 @@ CSV / official statistics
 
 状態は `S=未婚, M=有配偶, W=死別, V=離別, D=死亡`。許される遷移は `ontology/marital.yaml` で定義します。
 
+このオントロジーは検査表ではなく、**モデルの形そのもの**を決めます。生存状態の集合、死亡を状態別に分割した吸収状態、生成子行列 G(x) の大きさ（8×8）と疎構造は、すべて YAML から導出されます。`transforms.py` に状態名や行列サイズは書かれていません。オントロジーを差し替えれば、同じプログラムが別のモデルになります:
+
+```bash
+# 死別・離別を終端状態とする変種では、再婚のハザードがデータを読む前に拒否される
+PYTHONPATH=typed_mslt python -m mslt check typed_mslt/examples/male_2024.mslt \
+  --ontology typed_mslt/ontology/marital_absorbing_dissolution.yaml
+# ERROR: source remarriage_w: transition W->M is not licensed by
+#        ontology 'marital_absorbing_dissolution'
+```
+
 ## DSL
 
 `examples/male_2024.mslt` の主要部分:
@@ -92,7 +102,7 @@ PYTHONPATH=. pytest -q
 - 死亡数の `person` と exposure の `person-year` の意味混同。単位は基本次元 `person`・`year` 上の指数ベクトルなので、`person / (person-year) = 1/year` が**宣言ではなく計算で**出ます。人年でなく人頭数を分母に渡すと結果が無次元になり、ハザードとして弾かれます。
 - 「前婚解消時年齢」を「再婚時年齢」と無注記で同一視すること。
 - 2024年の配偶状態人口推計を観測値として扱うこと。
-- オントロジーに存在しない遷移をモデルへ混入すること。
+- オントロジーに存在しない遷移をモデルへ混入すること。許されていない遷移のハザードは、生成子行列に入る前に拒否されます。
 
 各変換は「型付け規則（signature）」と「行の計算」に分かれており、`check` と `run` は同じ signature を呼びます。したがって検査した型と実際に生成される型が食い違うことは起こりません。詳細は `docs/type_system.md`。
 
@@ -112,7 +122,7 @@ PYTHONPATH=. pytest -q
 mslt/
   units.py        dimensional algebra (person, year)
   types.py        semantic/refinement types
-  ontology.py     state-transition ontology
+  ontology.py     state-transition ontology + induced state space
   adapters.py     e-Stat / JMD semantic lift (+ type-level signatures)
   transforms.py   typing rules + typed transformations + Markov life table
   dsl.py          small DSL parser
@@ -120,6 +130,7 @@ mslt/
   cli.py          check / explain / run
 ontology/
   marital.yaml
+  marital_absorbing_dissolution.yaml   再婚なしの変種
 examples/
   male_2024.mslt
   male_2020_validate.mslt

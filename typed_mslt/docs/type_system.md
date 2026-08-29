@@ -104,6 +104,49 @@ S,M,W,V -> D death
 
 DSL で宣言した遷移は `ontology/marital.yaml` に存在しなければ型検査段階で拒否される。
 
+## オントロジーはモデルの形を決める
+
+オントロジーは検査表ではなく、**モデルの構成要素**である。`transforms.py` には状態の一覧も行列の大きさも書かれていない。すべて YAML から導出される。
+
+| 導出されるもの | 由来 |
+|---|---|
+| 生存状態の集合と順序 | `states` のうち `absorbing` でないもの |
+| 吸収状態 `D_S, D_M, D_W, D_V` | 生存状態ごとに `absorbing` を分割 |
+| 生成子行列 G(x) の大きさ | `2 × 生存状態数`（婚姻モデルでは 8×8） |
+| G(x) の疎構造（どのセルに質量を置けるか） | `transitions` |
+| 合成コホートの初期状態として許される状態 | 生存状態 |
+| 指標の対照状態 `NON_S` | `reference_state` |
+
+死亡を生存状態ごとの吸収状態に分割するのは、「死亡時の状態別平均年齢」を回収するためである。どの状態から吸収されたかを行列が覚えている必要がある。
+
+`mslt check` は導出されたモデルの形を表示する:
+
+```text
+ontology marital: living [S NeverMarried, M Married, W Widowed, V Divorced];
+absorbing D split by origin into 4; generator 8x8;
+social transitions S->M, M->W, M->V, W->M, V->M
+```
+
+### オントロジーの差し替え
+
+```bash
+mslt check examples/male_2024.mslt --ontology ontology/marital_absorbing_dissolution.yaml
+# ERROR: source remarriage_w: transition W->M is not licensed by
+#        ontology 'marital_absorbing_dissolution'
+```
+
+プログラム側から宣言することもできる:
+
+```text
+set ontology = "../ontology/marital_absorbing_dissolution.yaml"
+```
+
+許可されていない遷移のハザードは、**データを1バイトも読む前に**拒否される。オントロジーが飾りではなく構造上の制約として効いていることの確認になる。
+
+### 婚姻に固有ではない
+
+`mslt` のコア（状態空間・ハザード・生成子・`expm`・合成コホート・指標）はオントロジーだけに依存し、婚姻という主題を知らない。婚姻固有なのは `adapters.py` だけである。3状態の健康モデル（健康 H / 要介護 C / 死亡 D）を与えれば 4×4 の生成子が構成され、同じ機械がそのまま動く（`tests/test_ontology_driven.py`）。
+
 ## Core typing rules
 
 ```text
